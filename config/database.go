@@ -3,52 +3,35 @@ package config
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"time"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var DB *mongo.Database
 
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-	ConnectDB()
-}
-
 func ConnectDB() {
 	mongoURI := os.Getenv("MONGOSTRING")
-	if mongoURI == "" {
-		fmt.Println("MONGOSTRING not found in environment variables")
-		return
-	}
-
-	clientOpts := options.Client().ApplyURI(mongoURI)
-
-	client, err := mongo.Connect(context.TODO(), clientOpts)
+	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
-		fmt.Println("MongoConnect error:", err)
-		return
+		log.Fatal(err)
 	}
 
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		fmt.Println("Ping error:", err)
-		return
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Println("Connected to MongoDB successfully!")
-	DB = client.Database("kontruksi")
+	DB = client.Database("konstruksi")
+	fmt.Println("✅ Berhasil terhubung ke MongoDB!")
 }
 
-func GetCollection(name string) *mongo.Collection {
-	if DB == nil {
-		fmt.Println("Database not initialized. Call ConnectDB() first.")
-		return nil
-	}
-	return DB.Collection(name)
+func GetCollection(collectionName string) *mongo.Collection {
+	return DB.Collection(collectionName)
 }
