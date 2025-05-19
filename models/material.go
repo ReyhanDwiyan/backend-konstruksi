@@ -9,4 +9,5 @@ type Material struct {
 	Satuan       string             `bson:"satuan" json:"satuan"`
 	HargaPerUnit int                `bson:"harga_per_unit" json:"harga_per_unit"`
 	ProyekID     string             `bson:"proyek_id" json:"proyek_id"`
+	ImageURL     string             `bson:"image_url" json:"image_url"`
 }
